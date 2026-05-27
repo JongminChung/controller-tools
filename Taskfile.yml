@@ -1,0 +1,88 @@
+version: "3"
+
+vars:
+  CONTROLLER_GEN: go run ./cmd/controller-gen
+  LEARNING_OUT: artifacts/controller-gen-learning
+
+tasks:
+  default:
+    desc: Show available learning tasks.
+    cmds:
+      - task --list
+
+  learning:main:
+    desc: Run a guided controller-gen main.go tour.
+    cmds:
+      - task: learning:main:source
+      - task: learning:main:test-genall
+      - task: learning:main:help
+      - task: learning:main:no-generator
+      - task: learning:main:markers-crd
+      - task: learning:main:rbac-stdout
+      - task: learning:main:crd-dir
+
+  learning:main:source:
+    desc: Show the main.go and genall option parsing entry points.
+    cmds:
+      - "nl -ba cmd/controller-gen/main.go | sed -n '49,235p'"
+      - "nl -ba pkg/genall/options.go | sed -n '82,179p'"
+
+  learning:main:test-genall:
+    desc: Run tests for the shared generator runtime package.
+    cmds:
+      - "go test ./pkg/genall"
+
+  learning:main:help:
+    desc: Exercise main.go's help path and print CLI options.
+    cmds:
+      - "{{.CONTROLLER_GEN}} --help"
+
+  learning:main:version:
+    desc: Exercise main.go's version path.
+    cmds:
+      - "{{.CONTROLLER_GEN}} --version"
+
+  learning:main:no-generator:
+    desc: Show the error path when paths are supplied without a generator.
+    cmds:
+      - |
+        set +e
+        {{.CONTROLLER_GEN}} paths=./pkg/rbac/testdata
+        status=$?
+        echo
+        echo "expected non-zero exit status: ${status}"
+        exit 0
+
+  learning:main:markers-crd:
+    desc: Print the first page of CRD marker docs from the -w path.
+    cmds:
+      - "{{.CONTROLLER_GEN}} crd -w | sed -n '1,120p'"
+
+  learning:main:markers-crd-full:
+    desc: Print all CRD marker docs from the -w path.
+    cmds:
+      - "{{.CONTROLLER_GEN}} crd -w"
+
+  learning:main:rbac-stdout:
+    desc: Generate RBAC YAML to stdout.
+    cmds:
+      - "{{.CONTROLLER_GEN}} rbac:roleName=manager-role paths=./pkg/rbac/testdata output:stdout"
+
+  learning:main:rbac-dir:
+    desc: Generate RBAC YAML into an ignored artifacts directory.
+    cmds:
+      - "mkdir -p {{.LEARNING_OUT}}/rbac"
+      - "{{.CONTROLLER_GEN}} rbac:roleName=manager-role paths=./pkg/rbac/testdata output:dir={{.LEARNING_OUT}}/rbac"
+      - "find {{.LEARNING_OUT}}/rbac -maxdepth 2 -type f | sort"
+
+  learning:main:crd-stdout:
+    desc: Generate CRD YAML to stdout.
+    cmds:
+      - "{{.CONTROLLER_GEN}} crd:allowDangerousTypes=true,ignoreUnexportedFields=true paths=./pkg/crd/testdata output:stdout"
+
+  learning:main:crd-dir:
+    desc: Generate CRD YAML into an ignored artifacts directory.
+    cmds:
+      - "mkdir -p {{.LEARNING_OUT}}/crd"
+      - "{{.CONTROLLER_GEN}} crd:allowDangerousTypes=true,ignoreUnexportedFields=true paths=./pkg/crd/testdata output:dir={{.LEARNING_OUT}}/crd"
+      - "find {{.LEARNING_OUT}}/crd -maxdepth 2 -type f | sort"

@@ -22,7 +22,7 @@ jobs:
         working-directory:
           - ""
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # tag=v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # tag=v7.0.0
       - name: Calculate go version
         id: vars
         run: echo "go_version=$(make go-version)" >> $GITHUB_OUTPUT
@@ -33,6 +33,6 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # tag=v9.2.1
         with:
-          version: v2.12.1
+          version: v2.12.2
           args: --output.text.print-linter-name=true --output.text.colors=true --timeout 10m
           working-directory: ${{matrix.working-directory}}
